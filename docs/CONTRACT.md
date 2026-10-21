@@ -23,6 +23,8 @@ Unknown config keys are rejected. Command-line flags use hyphens, such as `--n-c
 
 Headers must be unique and nonempty. Empty tables, missing targets, nonfinite regression targets, mismatched feature sets, and evaluation target columns fail with exit code 1. Explicit output identifiers must be nonmissing and unique. Without an identifier column, row IDs are zero-based positions. Supervised labels are not inferred or synthesized.
 
+Declared categorical features and explicit identifiers are parsed as text, preserving leading zeros. Other columns, including supervised labels, use pandas CSV type inference and its standard missing-value tokens. The checker explicitly rejects invalid outputs even when Python optimization is enabled, and compares both prediction and probability CSV contents against the authoritative JSON result.
+
 ## Result
 
 `result.json` is a JSON object with these fields:

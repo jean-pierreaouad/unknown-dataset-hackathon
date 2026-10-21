@@ -6,7 +6,9 @@ The release ZIP was extracted to a separate directory. All three shipped example
 
 ## Automated checks
 
-All **34 tests passed** in the final full-suite run, which took 68.880 seconds for the entire suite. They cover numerical and categorical preprocessing, exact profiling, declared types, high cardinality, unknown categories, preprocessing isolation, malformed schemas, missing targets, duplicate identifiers, RMSLE constraints, clustering count constraints, mixed-data classification, regression quality, cluster recovery, single-class targets, collapsed groups, rare classes, multiclass probability alignment, one-row regression, optional clustering evaluation, and forced worker termination with checkpoint recovery.
+All **42 tests passed** in the final audit full-suite run, which took 50.585 seconds for the entire suite. They cover numerical and categorical preprocessing, exact profiling, declared types, high cardinality, unknown categories, preprocessing isolation, malformed schemas, missing targets, duplicate identifiers, RMSLE constraints, clustering count constraints, mixed-data classification, regression quality, cluster recovery, single-class targets, collapsed groups, rare classes, multiclass probability alignment, one-row regression, optional clustering evaluation, and forced worker termination with checkpoint recovery.
+
+The final audit added eight tests covering preservation of leading zeros in declared categories and explicit row IDs, finite median statistics for extreme numeric features, validation under Python optimization, tampered probability CSV files, overflowing JSON exponents, invalid regression predictions, and valid checker fixtures. The stricter checker also passed all 11 previously generated benchmark and larger-case outputs. Model-selection settings were unchanged by these audit fixes; the recorded benchmark timings below are the original measurements.
 
 One additional imbalance case checks that a class with just two examples remains present in both fitting and validation partitions, allowing ROC AUC to be evaluated. A single proportional stratified split can otherwise round the entire minority into one side.
 

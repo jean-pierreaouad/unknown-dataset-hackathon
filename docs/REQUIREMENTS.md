@@ -10,7 +10,7 @@ The source is the supplied Unknown Dataset Hackathon overview. It describes the 
 | Task and feature metadata, required group count | Supported through JSON config and command-line options; official metadata format pending |
 | Missing values and unequal scales | Imputation, scaling, missing indicators, and native histogram missing-value support |
 | Categorical features and unknown categories | Bounded encoding and explicit handling of unseen values |
-| Constant, duplicate, and irrelevant columns | Profiled; constants and exact duplicates removed during fitting; regularized and tree models address irrelevant features without guaranteeing removal |
+| Constant, duplicate, and irrelevant columns | Constants and duplicates profiled and removed during fitting; regularized and tree models address irrelevant features without guaranteeing removal |
 | Imbalanced classification | Stratified validation, balanced-model candidates, and configurable metrics |
 | Nonlinear relationships | Histogram boosting, extra trees, and bounded nonlinear clustering candidate |
 | Independent execution | No network or AI service used during inference |
