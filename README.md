@@ -70,6 +70,8 @@ Every CSV needs a header. Supervised training includes the target; evaluation co
 
 Feature types may be supplied as a dictionary in the config or a path to a JSON dictionary with `--feature-types types.json`. Metadata takes precedence; undeclared types are inferred from training features. Numeric-looking strings are inferred as numeric when at least 98% of nonempty, nonmissing entries parse as numbers.
 
+Explicit identifiers and declared categorical columns are read as text before numeric inference, preserving distinctions such as `001` versus `1`. The output checker stays active under `python -O` and checks CSV probability values against the complete JSON result. See [the final audit](docs/FINAL_AUDIT.md) for review findings and remaining requirements.
+
 Output files:
 
 | File | Contents |
