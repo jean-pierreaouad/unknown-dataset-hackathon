@@ -1,0 +1,9 @@
+{
+  "task": "classification",
+  "train": "train.csv",
+  "output": "results",
+  "time_budget": 15,
+  "seed": 42,
+  "test": "test.csv",
+  "target": "target"
+}
