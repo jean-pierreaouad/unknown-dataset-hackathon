@@ -130,11 +130,7 @@ The tests cover train/evaluation schema checks, preprocessing isolation, declare
 - The dependency versions are tested on Python 3.12. The actual assessment image may require a revised compatible lockfile.
 - The official profile schema, entry point, metrics, runtime accounting, and scoring formulas are pending. Replace this provisional adapter when they arrive.
 
-## Submission
 
-Submit a **public GitHub repository URL** containing this project, pinned dependencies, team names, and README. A hosted website is unnecessary. The supplied overview describes 18 private datasets, with 85 points for quality, 10 for profiling, and 5 for speed; the three task families contribute equally to quality. Speed credit depends on useful model performance.
-
-Before submission, follow [the final checklist](docs/REQUIREMENTS.md). Obtain the official contract and checker if available, verify the submitted commit from a clean installation, make the repository public, and submit its URL through the organizer's designated channel. A ZIP alone is not the stated submission format.
 
 ## Library references
 
