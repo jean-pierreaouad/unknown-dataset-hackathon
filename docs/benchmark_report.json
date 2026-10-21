@@ -1,0 +1,308 @@
+{
+  "scope": "Synthetic local development tests; not official practice data or contest scores",
+  "time_budget_per_case": 15.0,
+  "cases": [
+    {
+      "name": "classification_imbalanced",
+      "task": "classification",
+      "elapsed_seconds": 8.515,
+      "selected_model": "extra_trees",
+      "metrics": {
+        "accuracy": 0.9422222222222222,
+        "balanced_accuracy": 0.8748481904299248
+      },
+      "time_limit_reached": false,
+      "candidates": [
+        {
+          "model": "linear",
+          "fit_seconds": 0.047,
+          "warnings": [],
+          "score": 0.881008010680908
+        },
+        {
+          "model": "histogram_boosting",
+          "fit_seconds": 0.235,
+          "warnings": [],
+          "score": 0.9634512683578105
+        },
+        {
+          "model": "extra_trees",
+          "fit_seconds": 0.172,
+          "warnings": [],
+          "score": 0.9642857142857143
+        }
+      ]
+    },
+    {
+      "name": "classification_nonlinear",
+      "task": "classification",
+      "elapsed_seconds": 6.406,
+      "selected_model": "extra_trees",
+      "metrics": {
+        "accuracy": 0.9777777777777777,
+        "balanced_accuracy": 0.9778365992414665
+      },
+      "time_limit_reached": false,
+      "candidates": [
+        {
+          "model": "linear",
+          "fit_seconds": 0.016,
+          "warnings": [],
+          "score": 0.9111111111111111
+        },
+        {
+          "model": "histogram_boosting",
+          "fit_seconds": 0.11,
+          "warnings": [],
+          "score": 0.9481481481481482
+        },
+        {
+          "model": "extra_trees",
+          "fit_seconds": 0.141,
+          "warnings": [],
+          "score": 0.9777777777777777
+        }
+      ]
+    },
+    {
+      "name": "classification_mixed",
+      "task": "classification",
+      "elapsed_seconds": 7.391,
+      "selected_model": "linear",
+      "metrics": {
+        "accuracy": 0.884,
+        "balanced_accuracy": 0.884
+      },
+      "time_limit_reached": false,
+      "candidates": [
+        {
+          "model": "linear",
+          "fit_seconds": 0.063,
+          "warnings": [],
+          "score": 0.84
+        },
+        {
+          "model": "histogram_boosting",
+          "fit_seconds": 0.235,
+          "warnings": [],
+          "score": 0.8333333333333334
+        },
+        {
+          "model": "extra_trees",
+          "fit_seconds": 0.312,
+          "warnings": [],
+          "score": 0.8066666666666666
+        }
+      ]
+    },
+    {
+      "name": "regression_linear",
+      "task": "regression",
+      "elapsed_seconds": 7.093,
+      "selected_model": "linear",
+      "metrics": {
+        "rmse": 10.805861525625158,
+        "r2": 0.9956265393067557
+      },
+      "time_limit_reached": false,
+      "candidates": [
+        {
+          "model": "linear",
+          "fit_seconds": 0.031,
+          "warnings": [],
+          "score": -9.331162831750888
+        },
+        {
+          "model": "histogram_boosting",
+          "fit_seconds": 0.391,
+          "warnings": [],
+          "score": -26.217541651560175
+        },
+        {
+          "model": "extra_trees",
+          "fit_seconds": 0.391,
+          "warnings": [],
+          "score": -35.02873492904066
+        }
+      ]
+    },
+    {
+      "name": "regression_nonlinear",
+      "task": "regression",
+      "elapsed_seconds": 7.078,
+      "selected_model": "histogram_boosting",
+      "metrics": {
+        "rmse": 1.6699136330275461,
+        "r2": 0.9733971436170431
+      },
+      "time_limit_reached": false,
+      "candidates": [
+        {
+          "model": "linear",
+          "fit_seconds": 0.031,
+          "warnings": [],
+          "score": -9.653992208822695
+        },
+        {
+          "model": "histogram_boosting",
+          "fit_seconds": 0.265,
+          "warnings": [],
+          "score": -2.1071655989971214
+        },
+        {
+          "model": "extra_trees",
+          "fit_seconds": 0.281,
+          "warnings": [],
+          "score": -2.994315432497614
+        }
+      ]
+    },
+    {
+      "name": "regression_mixed_positive",
+      "task": "regression",
+      "elapsed_seconds": 7.218,
+      "selected_model": "histogram_boosting",
+      "metrics": {
+        "rmse": 46.47767963904822,
+        "r2": 0.9302206034115049,
+        "rmsle": 0.17210927741003051
+      },
+      "time_limit_reached": false,
+      "candidates": [
+        {
+          "model": "linear",
+          "fit_seconds": 0.032,
+          "warnings": [],
+          "score": -1.1207464440858268
+        },
+        {
+          "model": "histogram_boosting",
+          "fit_seconds": 0.219,
+          "warnings": [],
+          "score": -0.16130710948768323
+        },
+        {
+          "model": "extra_trees",
+          "fit_seconds": 0.438,
+          "warnings": [],
+          "score": -0.1901586433077426
+        },
+        {
+          "model": "log_target_histogram",
+          "fit_seconds": 0.234,
+          "warnings": [],
+          "score": -0.16314974450832334
+        }
+      ]
+    },
+    {
+      "name": "clustering_scaled",
+      "task": "clustering",
+      "elapsed_seconds": 6.11,
+      "selected_model": "kmeans",
+      "metrics": {
+        "adjusted_rand_index": 1.0
+      },
+      "time_limit_reached": false,
+      "candidates": [
+        {
+          "model": "kmeans",
+          "score": 0.9117720374335764,
+          "fit_seconds": 0.047,
+          "groups_repaired": false
+        },
+        {
+          "model": "gaussian_mixture_diagonal",
+          "score": 0.9117720374335764,
+          "fit_seconds": 0.016,
+          "groups_repaired": false
+        },
+        {
+          "model": "gaussian_mixture_full",
+          "score": 0.9117720374335764,
+          "fit_seconds": 0.031,
+          "groups_repaired": false
+        },
+        {
+          "model": "spectral_neighbors",
+          "score": 0.9117720374335764,
+          "fit_seconds": 0.063,
+          "groups_repaired": false
+        }
+      ]
+    },
+    {
+      "name": "clustering_anisotropic",
+      "task": "clustering",
+      "elapsed_seconds": 6.14,
+      "selected_model": "kmeans",
+      "metrics": {
+        "adjusted_rand_index": 1.0
+      },
+      "time_limit_reached": false,
+      "candidates": [
+        {
+          "model": "kmeans",
+          "score": 0.8400977738741767,
+          "fit_seconds": 0.031,
+          "groups_repaired": false
+        },
+        {
+          "model": "gaussian_mixture_diagonal",
+          "score": 0.8400977738741767,
+          "fit_seconds": 0.015,
+          "groups_repaired": false
+        },
+        {
+          "model": "gaussian_mixture_full",
+          "score": 0.8400977738741767,
+          "fit_seconds": 0.016,
+          "groups_repaired": false
+        },
+        {
+          "model": "spectral_neighbors",
+          "score": 0.3541591049216992,
+          "fit_seconds": 0.078,
+          "groups_repaired": false
+        }
+      ]
+    },
+    {
+      "name": "clustering_mixed",
+      "task": "clustering",
+      "elapsed_seconds": 6.234,
+      "selected_model": "kmeans",
+      "metrics": {
+        "adjusted_rand_index": 1.0
+      },
+      "time_limit_reached": false,
+      "candidates": [
+        {
+          "model": "kmeans",
+          "score": 0.7625250161570074,
+          "fit_seconds": 0.047,
+          "groups_repaired": false
+        },
+        {
+          "model": "gaussian_mixture_diagonal",
+          "score": 0.7625250161570074,
+          "fit_seconds": 0.047,
+          "groups_repaired": false
+        },
+        {
+          "model": "gaussian_mixture_full",
+          "score": 0.7625250161570074,
+          "fit_seconds": 0.047,
+          "groups_repaired": false
+        },
+        {
+          "model": "spectral_neighbors",
+          "score": 0.4799521769885991,
+          "fit_seconds": 0.14,
+          "groups_repaired": false
+        }
+      ]
+    }
+  ],
+  "all_under_60_seconds": true
+}

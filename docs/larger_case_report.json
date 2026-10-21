@@ -1,0 +1,73 @@
+{
+  "environment": {
+    "python": "3.12.14",
+    "os": "Windows",
+    "architecture": "AMD64",
+    "processor": "Intel64 Family 6 Model 126 Stepping 5, GenuineIntel",
+    "logical_cpus": 8
+  },
+  "cases": [
+    {
+      "task": "classification",
+      "training_rows": 20000,
+      "features": 41,
+      "output_rows": 4000,
+      "elapsed_seconds": 18.562,
+      "quality_metric": "accuracy",
+      "quality": 0.9545,
+      "selected_model": "histogram_boosting",
+      "time_limit_reached": true,
+      "candidates": [
+        {
+          "model": "linear",
+          "fit_seconds": 0.328,
+          "warnings": [],
+          "score": 0.844
+        },
+        {
+          "model": "histogram_boosting",
+          "fit_seconds": 2.375,
+          "warnings": [],
+          "score": 0.95625
+        }
+      ]
+    },
+    {
+      "task": "clustering",
+      "training_rows": 8000,
+      "features": 12,
+      "output_rows": 8000,
+      "elapsed_seconds": 6.218,
+      "quality_metric": "adjusted_rand_index",
+      "quality": 1.0,
+      "selected_model": "minibatch_kmeans",
+      "time_limit_reached": false,
+      "candidates": [
+        {
+          "model": "minibatch_kmeans",
+          "score": 0.8316920681109702,
+          "fit_seconds": 0.062,
+          "groups_repaired": false
+        },
+        {
+          "model": "kmeans",
+          "score": 0.8316920681109702,
+          "fit_seconds": 0.078,
+          "groups_repaired": false
+        },
+        {
+          "model": "gaussian_mixture_diagonal",
+          "score": 0.8316920681109702,
+          "fit_seconds": 0.14,
+          "groups_repaired": false
+        },
+        {
+          "model": "gaussian_mixture_full",
+          "score": 0.8316920681109702,
+          "fit_seconds": 0.188,
+          "groups_repaired": false
+        }
+      ]
+    }
+  ]
+}
