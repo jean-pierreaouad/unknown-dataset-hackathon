@@ -8,14 +8,17 @@ import numpy as np
 import pandas as pd
 
 
-def read_csv(path):
+def read_csv(path, text_columns=()):
     with Path(path).open(encoding="utf-8-sig", newline="") as stream:
         headers = next(csv.reader(stream), None)
     if not headers or any(not name.strip() for name in headers):
         raise ValueError("CSV must have a nonempty header for every column")
     if len(headers) != len(set(headers)):
         raise ValueError("Duplicate CSV column names are not supported")
-    frame = pd.read_csv(path, encoding="utf-8-sig", low_memory=False)
+    # Respect categorical metadata before pandas infers numbers and discards
+    # distinctions such as '001' versus '1'. Preserve explicit identifiers too.
+    dtypes = {name: str for name in text_columns if name in headers}
+    frame = pd.read_csv(path, encoding="utf-8-sig", low_memory=False, dtype=dtypes)
     if len(frame) == 0:
         raise ValueError("CSV must contain at least one data row")
     return frame
@@ -43,6 +46,21 @@ def infer_types(frame, declared):
 def numeric(values):
     array = pd.to_numeric(values, errors="coerce").astype(float)
     return array.replace([np.inf, -np.inf], np.nan)
+
+
+def stable_median(values):
+    """Avoid overflow when averaging the two central finite values."""
+    ordered = np.sort(np.asarray(values, dtype=float))
+    if not len(ordered):
+        return None
+    middle = len(ordered) // 2
+    if len(ordered) % 2:
+        return float(ordered[middle])
+    lower, upper = ordered[middle - 1:middle + 1]
+    # Same-sign subtraction is bounded; opposite-sign addition is bounded.
+    if np.signbit(lower) == np.signbit(upper):
+        return float(lower + (upper - lower) / 2)
+    return float((lower + upper) / 2)
 
 
 def normalize(frame, types):
@@ -89,7 +107,7 @@ def profile_frame(frame, types):
             item["invalid_numeric_count"] = int((values.notna() & converted.isna()).sum())
             item["numeric_clipped_count"] = int((finite.abs() > 1e30).sum())
             item["statistics"] = ({"min": float(finite.min()), "max": float(finite.max()),
-                                   "median": float(finite.median()),
+                                   "median": stable_median(finite),
                                    "mean": float((finite / max(1.0, float(finite.abs().max()))).mean() * max(1.0, float(finite.abs().max())))} if len(finite) else None)
         else:
             counts = values.dropna().astype(str).value_counts().head(10)
@@ -103,8 +121,11 @@ def profile_frame(frame, types):
 
 
 def load_data(config):
-    raw = read_csv(config["train"])
-    test = read_csv(config["test"]) if config.get("test") else None
+    text_columns = [name for name, kind in config["feature_types"].items() if kind == "categorical"]
+    if config.get("id_column"):
+        text_columns.append(config["id_column"])
+    raw = read_csv(config["train"], text_columns)
+    test = read_csv(config["test"], text_columns) if config.get("test") else None
     target = config.get("target")
     y = None
     if target:
@@ -154,5 +175,5 @@ def load_data(config):
             profile["target"] = {"name": target, "classes": [{"label": value.item() if isinstance(value, np.generic) else value, "count": int(count)} for value, count in counts.items()],
                                  "imbalance_ratio": float(counts.max() / counts.min())}
         else:
-            profile["target"] = {"name": target, "min": float(y.min()), "max": float(y.max()), "median": float(y.median())}
+            profile["target"] = {"name": target, "min": float(y.min()), "max": float(y.max()), "median": stable_median(y)}
     return raw, test, y, types, profile, row_ids
