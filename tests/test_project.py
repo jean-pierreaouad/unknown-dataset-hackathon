@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import csv
 import os
 from pathlib import Path
 import subprocess
@@ -70,6 +71,12 @@ class FeatureTests(unittest.TestCase):
         frame = pd.DataFrame({"x": ["1", "oops", np.inf, None]})
         p = profile_frame(frame, {"x": "numeric"})["columns"]["x"]
         self.assertEqual((p["invalid_numeric_count"], p["infinite_count"], p["missing_count"]), (1, 1, 1))
+
+    def test_extreme_finite_features_produce_finite_json_statistics(self):
+        for values, expected in [([1e308, 1e308], 1e308), ([-1e308, -1e308], -1e308), ([-1e308, 1e308], 0.0)]:
+            profile = profile_frame(pd.DataFrame({"x": values}), {"x": "numeric"})
+            self.assertEqual(profile["columns"]["x"]["statistics"]["median"], expected)
+            json.dumps(profile, allow_nan=False)
 
     def test_repair_collapsed_groups(self):
         labels = ensure_groups([0, 0, 0, 0, 0], 4)
@@ -168,6 +175,69 @@ class InputTests(unittest.TestCase):
         self.config.pop("test")
         with self.assertRaisesRegex(ValueError, "number of training rows"):
             load_data(self.config)
+
+    def test_declared_categories_keep_distinct_numeric_looking_codes(self):
+        (self.folder / "train.csv").write_text("x,target\n001,yes\n1,no\n002,yes\n2,no\n", encoding="utf-8")
+        (self.folder / "test.csv").write_text("x\n001\n1\n", encoding="utf-8")
+        self.config["feature_types"] = {"x": "categorical"}
+        train, evaluation, *_ = load_data(self.config)
+        self.assertEqual(train["x"].tolist(), ["001", "1", "002", "2"])
+        self.assertEqual(evaluation["x"].tolist(), ["001", "1"])
+
+    def test_explicit_row_identifiers_keep_leading_zeros(self):
+        (self.folder / "train.csv").write_text("id,x,target\n001,1,yes\n002,2,no\n", encoding="utf-8")
+        (self.folder / "test.csv").write_text("id,x\n005,3\n006,4\n", encoding="utf-8")
+        self.config["id_column"] = "id"
+        *_, row_ids = load_data(self.config)
+        self.assertEqual(row_ids, ["005", "006"])
+
+
+class CheckerTests(unittest.TestCase):
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory(prefix=".test-", dir=ROOT)
+        self.folder = Path(self.temp.name)
+        self.result = {"schema_version": "1.0", "predictions": ["yes"], "row_ids": ["007"],
+                       "classes": ["no", "yes"], "probabilities": [[0.1, 0.9]],
+                       "profile": {"training": {"rows": 3, "features": 1, "columns": {"x": {}}}},
+                       "run": {"task": "classification"}}
+        self.write_fixture()
+
+    def tearDown(self):
+        self.temp.cleanup()
+
+    def write_fixture(self):
+        for name, data in [("result.json", self.result), ("profile.json", self.result["profile"]), ("run.json", self.result["run"])]:
+            (self.folder / name).write_text(json.dumps(data), encoding="utf-8")
+        with (self.folder / "predictions.csv").open("w", newline="", encoding="utf-8") as stream:
+            csv.writer(stream).writerows([["row_id", "prediction"], ["007", self.result["predictions"][0]]])
+        (self.folder / "probabilities.csv").write_text("row_id,class_0,class_1\n007,0.1,0.9\n", encoding="utf-8")
+
+    def test_valid_output_passes(self):
+        self.assertEqual(check(self.folder, expected_rows=1)["row_ids"], ["007"])
+
+    def test_checker_remains_active_with_python_optimization(self):
+        self.result["predictions"] = None
+        (self.folder / "result.json").write_text(json.dumps(self.result), encoding="utf-8")
+        process = subprocess.run([sys.executable, "-O", str(ROOT / "check_output.py"), str(self.folder)], capture_output=True, text=True, timeout=10)
+        self.assertNotEqual(process.returncode, 0)
+        self.assertIn("predictions must be an array", process.stderr)
+
+    def test_changed_probability_csv_is_rejected(self):
+        (self.folder / "probabilities.csv").write_text("row_id,class_0,class_1\n007,0.9,0.1\n", encoding="utf-8")
+        with self.assertRaisesRegex(ValueError, "probabilities differ"):
+            check(self.folder)
+
+    def test_overflowing_json_exponent_is_rejected(self):
+        path = self.folder / "result.json"
+        path.write_text(path.read_text(encoding="utf-8").replace("0.9", "1e999"), encoding="utf-8")
+        with self.assertRaisesRegex(ValueError, "Nonfinite JSON"):
+            check(self.folder)
+
+    def test_regression_rejects_text_predictions(self):
+        self.result["run"]["task"] = "regression"
+        self.write_fixture()
+        with self.assertRaisesRegex(ValueError, "finite numbers"):
+            check(self.folder)
 
 
 class IntegrationTests(unittest.TestCase):
