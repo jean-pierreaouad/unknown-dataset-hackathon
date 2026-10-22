@@ -13,11 +13,12 @@ from unittest.mock import patch
 
 import numpy as np
 import pandas as pd
-from sklearn.datasets import make_blobs, make_classification, make_regression
+from sklearn.datasets import (load_breast_cancer, load_diabetes, make_blobs,
+                              make_classification, make_moons, make_regression)
 
 import run
 from automl.data import infer_types, load_data, profile_frame, read_csv
-from automl.features import Cleaner, TreeEncoder, general_preprocessor
+from automl.features import Cleaner, general_preprocessor
 from automl.worker import ensure_groups, score_supervised
 from check_output import check
 
@@ -55,12 +56,15 @@ class FeatureTests(unittest.TestCase):
         evaluation = pd.DataFrame({"x": [4], "copy": [100], "constant": [99]})
         self.assertEqual(list(cleaner.transform(evaluation).columns), ["x"])
 
-    def test_tree_encoder_bounds_cardinality_and_handles_unknowns(self):
+    def test_one_hot_bounds_cardinality_and_handles_unknowns(self):
         frame = pd.DataFrame({"cat": [f"v{i}" for i in range(400)]})
-        encoder = TreeEncoder().fit(frame)
-        transformed = encoder.transform(frame)
-        self.assertLessEqual(transformed["cat"].nunique(), 254)
-        self.assertTrue(pd.isna(encoder.transform(pd.DataFrame({"cat": ["new"]})).iloc[0, 0]))
+        prep = general_preprocessor({"cat": "categorical"}).fit(frame)
+        transformed = prep.transform(frame)
+        self.assertLessEqual(transformed.shape[1], 64)
+        unseen = prep.transform(pd.DataFrame({"cat": ["new"]}))
+        values = unseen.toarray() if hasattr(unseen, "toarray") else unseen
+        self.assertEqual(values.shape, (1, transformed.shape[1]))
+        self.assertTrue(np.isfinite(values).all())
 
     def test_all_constant_features_become_bias(self):
         frame = pd.DataFrame({"constant": [1, 1, 1], "empty": [np.nan] * 3})
@@ -311,13 +315,14 @@ class IntegrationTests(unittest.TestCase):
         self.assertEqual(result["classes"], ["alpha", "beta", "gamma"])
         self.assertTrue(0 <= result["run"]["validation_score"] <= 1)
 
-    def test_high_cardinality_categories_fit_histogram_successfully(self):
+    def test_high_cardinality_categories_fit_all_three_models(self):
         frame = pd.DataFrame({"category": [f"label{i}" for i in range(350)], "number": np.arange(350), "target": np.arange(350) % 2})
         test = pd.DataFrame({"category": ["unseen", "label1"], "number": [20, 30]})
         result = self.execute("classification", frame, test, target="target", feature_types={"category": "categorical"})
-        hist = [item for item in result["run"]["candidates"] if item["model"] == "histogram_boosting"]
-        self.assertTrue(hist)
-        self.assertNotIn("error", hist[0])
+        completed = result["run"]["candidates"]
+        self.assertEqual({item["model"] for item in completed},
+                         {"linear", "decision_tree", "random_forest"})
+        self.assertTrue(all("error" not in item for item in completed))
 
     def test_clustering_evaluation_assignments(self):
         X, _ = make_blobs(n_samples=160, centers=3, random_state=42)
@@ -333,6 +338,59 @@ class IntegrationTests(unittest.TestCase):
         result = self.execute("classification", train, pd.DataFrame({"x": [2, 998]}), target="target", metric="roc_auc")
         self.assertTrue(0 <= result["run"]["validation_score"] <= 1)
         self.assertEqual(result["classes"], ["majority", "rare"])
+
+    def test_nonlinear_classification_generalizes(self):
+        # A linear separator cannot follow two curved moon-shaped groups.
+        X, y = make_moons(n_samples=600, noise=0.15, random_state=81)
+        frame = pd.DataFrame(X, columns=["x", "z"])
+        frame["target"] = y
+        result = self.execute("classification", frame.iloc[:450],
+                              frame.iloc[450:].drop(columns="target"), target="target")
+        from sklearn.metrics import accuracy_score
+        self.assertGreater(accuracy_score(y[450:], result["predictions"]), 0.9)
+
+    def test_nonlinear_regression_generalizes(self):
+        rng = np.random.default_rng(81)
+        X = rng.uniform(-3, 3, (700, 3))
+        y = 6 * np.sin(X[:, 0]) + 2 * X[:, 1] ** 2
+        frame = pd.DataFrame(X)
+        frame["target"] = y
+        result = self.execute("regression", frame.iloc[:550],
+                              frame.iloc[550:].drop(columns="target"), target="target")
+        from sklearn.metrics import r2_score
+        self.assertGreater(r2_score(y[550:], result["predictions"]), 0.8)
+
+    def test_bundled_real_classification_data(self):
+        # This built-in teaching dataset requires no downloads. It is used
+        # only for testing predictions, never as production training data.
+        from sklearn.model_selection import train_test_split
+        from sklearn.metrics import accuracy_score
+        data = load_breast_cancer(as_frame=True)
+        train, test, y_train, y_test = train_test_split(
+            data.data, data.target, test_size=0.25, stratify=data.target, random_state=81)
+        train = train.copy()
+        train["target"] = y_train
+        result = self.execute("classification", train, test, target="target")
+        self.assertGreater(accuracy_score(y_test, result["predictions"]), 0.9)
+
+    def test_bundled_real_regression_data(self):
+        from sklearn.model_selection import train_test_split
+        from sklearn.metrics import r2_score
+        data = load_diabetes(as_frame=True)
+        train, test, y_train, y_test = train_test_split(
+            data.data, data.target, test_size=0.25, random_state=81)
+        train = train.copy()
+        train["target"] = y_train
+        result = self.execute("regression", train, test, target="target")
+        self.assertGreater(r2_score(y_test, result["predictions"]), 0.3)
+
+    def test_large_clustering_uses_minibatches(self):
+        X, y = make_blobs(n_samples=5200, centers=4, n_features=4,
+                          cluster_std=0.4, random_state=81)
+        result = self.execute("clustering", pd.DataFrame(X), n_clusters=4)
+        from sklearn.metrics import adjusted_rand_score
+        self.assertEqual(result["run"]["selected_model"], "minibatch_kmeans")
+        self.assertGreater(adjusted_rand_score(y, result["predictions"]), 0.95)
 
     def test_watchdog_retains_complete_checkpoint(self):
         config = {"task": "regression", "train": str(self.folder / "unused.csv"), "output": str(self.folder / "results"), "seed": 42, "threads": 1, "time_budget": 3}
