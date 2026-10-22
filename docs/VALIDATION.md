@@ -5,8 +5,10 @@ Family 6 Model 126, with 8 logical CPUs. The prediction worker used one thread.
 All ten installed versions matched `requirements.txt`; all ten active package
 dependency constraints passed a distribution-metadata check. The existing
 isolated environment has no pip module, so this review does not claim a new
-`pip check` run there. Fresh installation, Linux, and the organizer's image
-remain unverified. See `dependency_report.json`.
+`pip check` run there. Fresh Windows and Ubuntu Linux installations subsequently passed GitHub Actions,
+including `pip check`, all 47 tests, and all three examples. See [CI evidence](CI.md).
+The organizer's image remains unverified. See `dependency_report.json` for the
+original local environment check.
 
 ## Automated checks
 

@@ -25,7 +25,9 @@ All 47 tests passed. Two checks tied to removed implementations
 were replaced by equivalent behavior checks, and five learning/integration
 checks were added. Both versions were compared on identical generated data,
 larger timed cases were measured, and exact dependencies were checked.
-`VALIDATION.md` records results, including quality reductions.
+`VALIDATION.md` records results, including quality reductions. Fresh Windows and
+Ubuntu Linux environments also passed all 47 tests, dependency installation and
+checks, and all three examples in GitHub Actions; see [CI evidence](CI.md).
 
 The two supplied course decks support the workflow and preparation concepts,
 and the syllabus names validation, decision trees, and K-means. They do not
