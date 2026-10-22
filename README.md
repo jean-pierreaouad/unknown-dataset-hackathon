@@ -2,6 +2,8 @@
 
 ### Unknown Dataset Hackathon · EECE 490
 
+[![Python tests](https://github.com/jean-pierreaouad/unknown-dataset-hackathon/actions/workflows/tests.yml/badge.svg?branch=main)](https://github.com/jean-pierreaouad/unknown-dataset-hackathon/actions/workflows/tests.yml)
+
 A Python program that turns an unfamiliar CSV table into **predictions and a
 structured data profile**. It handles classification, regression, and clustering
 through one command, with automatic preparation and a CPU time budget.
@@ -157,8 +159,10 @@ classes, missing and extreme values, nonlinear learning, real teaching datasets,
 clustering, and forced timeout recovery.
 
 [GitHub Actions](https://github.com/jean-pierreaouad/unknown-dataset-hackathon/actions) is configured to install the pinned dependencies,
-run the suite, and check all three examples on Windows and Linux. Its run status
-is separate from the recorded local measurements.
+run the suite, and check all three examples on Windows and Linux. Both platforms
+passed all 47 tests, dependency checks, and examples in the
+[recorded verification run](docs/CI.md). The live badge shows the latest status;
+the timing and quality table below records separate local measurements.
 
 The nine-case benchmark uses **synthetic development data**, with truth kept
 outside the prediction program. Selected results:
