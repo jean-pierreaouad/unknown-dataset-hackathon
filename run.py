@@ -1,4 +1,9 @@
-"""Provisional entry point. Standard library only until the worker is started."""
+"""The command-line entry point, using Python's standard library.
+
+parse_args() checks the requested task and paths. execute() launches the ML
+worker, enforces the time budget, and writes its last completed predictions.
+For the actual learning steps, read automl/models.py and automl/worker.py.
+"""
 from __future__ import annotations
 
 import argparse
@@ -18,6 +23,7 @@ FIELDS = {"task", "train", "test", "target", "n_clusters", "feature_types",
 
 
 def atomic_json(path, value):
+    """Replace a JSON file only after its complete contents have been written."""
     path = Path(path)
     temp = path.with_suffix(path.suffix + ".tmp")
     temp.write_text(json.dumps(value, indent=2, allow_nan=False), encoding="utf-8")
@@ -25,6 +31,7 @@ def atomic_json(path, value):
 
 
 def parse_args(argv=None):
+    """Read JSON configuration, apply command-line overrides, and check inputs."""
     parser = argparse.ArgumentParser(description="Automatic classification, regression, and clustering")
     parser.add_argument("--config", type=Path, help="JSON configuration; paths resolve beside that file")
     parser.add_argument("--task", choices=["classification", "regression", "clustering"])
@@ -97,6 +104,7 @@ def parse_args(argv=None):
 
 
 def execute(config):
+    """Run one dataset with a deadline and keep the last complete result."""
     started = time.monotonic()
     output = Path(config["output"]).resolve()
     protected = {Path(config[key]).resolve() for key in ("train", "test") if config.get(key)}

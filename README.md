@@ -1,25 +1,40 @@
-# Unknown Dataset Hackathon
+# Tabular ML Toolkit
 
-This project automatically profiles a tabular CSV dataset and solves its declared classification, regression, or clustering task. It selects preparation and models from the supplied data, then writes predictions, a structured profile, and execution diagnostics. It runs on a CPU without internet access, AI services, external datasets, or downloaded pretrained models.
+### Unknown Dataset Hackathon · EECE 490
 
-Public repository: https://github.com/jean-pierreaouad/unknown-dataset-hackathon
+A Python program that turns an unfamiliar CSV table into **predictions and a
+structured data profile**. It handles classification, regression, and clustering
+through one command, with automatic preparation and a CPU time budget.
 
-The implementation follows the supplied hackathon overview. **The official kickoff input/output contract, environment, size limits, checker, and scoring formulas were not supplied. This repository therefore defines a provisional interface.** It is a working project that must be compared with those materials before claiming assessment compatibility. See [the requirement checklist](docs/REQUIREMENTS.md) and [interface specification](docs/CONTRACT.md).
+[Quick start](#quick-start) · [How it works](#how-it-works) ·
+[Student guide](docs/STUDENT_GUIDE.md) · [Results](docs/VALIDATION.md) ·
+[Input/output contract](docs/CONTRACT.md)
 
-## Team
+## What it does
 
-- Jean-Pierre Aouad
-- Maher Karam
-- Alex Yammine
-- Marc Abou Mikheal
+| Task | Models | Output |
+|---|---|---|
+| Classification | Logistic regression, decision tree, random forest | Original class labels and probabilities |
+| Regression | Ridge regression, decision tree, random forest | Numeric predictions |
+| Clustering | K-means; mini-batch K-means for larger tables | Requested number of groups |
 
-The overview specifies three students per team. Jean-Pierre confirmed that this four-person team has approval. The reported submission deadline is **21 October 2026 at 23:00, Asia/Beirut**.
+The program handles missing values, different scales, numeric and categorical
+columns, constants, duplicates, unseen categories, and imbalanced classes.
+It validates inputs, reports data statistics, and saves completed predictions
+so a later timeout can retain a usable result. Running predictions needs no
+internet, GPU, AI service, or downloaded model.
 
-## Install and run
+This is a student project built for the Unknown Dataset Hackathon in EECE 490.
+It follows the supplied overview using a **provisional CSV/JSON interface**;
+the organizer's detailed contract and assessment environment were not supplied.
+See the [requirement checklist](docs/REQUIREMENTS.md) for the exact scope.
 
-Python **3.12** is the tested runtime. Install pinned dependencies into an isolated environment. Dependency installation requires internet access; running the program does not.
+## Quick start
 
-Windows PowerShell:
+Use **Python 3.12**. Clone or download this repository, then open its folder.
+Installation needs internet access; prediction runs do not.
+
+**Windows PowerShell**
 
 ```powershell
 python -m venv .venv
@@ -28,7 +43,7 @@ python -m venv .venv
 .\.venv\Scripts\python.exe check_output.py examples/classification/results --expected-rows 20
 ```
 
-Linux or macOS:
+**Linux / macOS**
 
 ```sh
 python3.12 -m venv .venv
@@ -37,9 +52,52 @@ python3.12 -m venv .venv
 .venv/bin/python check_output.py examples/classification/results --expected-rows 20
 ```
 
-The examples contain small generated datasets. Run the regression and clustering examples by replacing the config path with `examples/regression/config.json` or `examples/clustering/config.json`.
+From here, `python` means the Python executable in that environment. Try all
+three included examples:
 
-The commands below use `python` for the Python executable in the installed environment.
+```sh
+python run.py --config examples/classification/config.json
+python run.py --config examples/regression/config.json
+python run.py --config examples/clustering/config.json
+```
+
+The examples use small generated datasets. Each writes a `results/` folder
+beside its configuration. For classification, inspect `predictions.csv` and
+`probabilities.csv`; `run.json` identifies the chosen model and validation score.
+
+## How it works
+
+```mermaid
+flowchart LR
+    A[CSV and task configuration] --> B[Validate and profile]
+    B --> C[Prepare features]
+    C --> D[Train and validate supervised models]
+    C --> E[K-means clustering]
+    D --> F[Predictions and reports]
+    E --> F
+```
+
+1. **Inspect:** check schemas and feature types; summarize missingness,
+   distributions, constants, and duplicates. Exclude the target and declared ID.
+2. **Prepare:** remove training constants and duplicates, fill numeric values
+   with medians, standardize numbers, and fill/one-hot encode categories.
+   Pool rare categories to limit expansion. Learn transformations from training
+   rows and reuse them on validation and evaluation rows.
+3. **Learn:** compare a constant baseline and three supervised candidates on
+   one holdout, stratified for classification. Try refitting the winner on all
+   labelled rows. Tiny/rare-class cases use a fixed decision tree with fallback.
+   Clustering uses the supplied group count, without reading target labels.
+4. **Return:** write predictions, probabilities where applicable, the raw-data
+   profile, and diagnostics. The default 55-second processing budget leaves
+   margin against the overview's 60-second limit.
+
+The model set is intentionally small. A random forest is an explained extension
+of decision trees: 60 trees vote or average their predictions. The
+[course mapping](docs/COURSE_ALIGNMENT.md) distinguishes confirmed course topics
+from extensions. All application logic is Python, using pandas, NumPy, and
+scikit-learn implementations.
+
+## Use your own data
 
 ```sh
 python run.py --task classification --train train.csv --test test.csv --target outcome --output results
@@ -47,11 +105,13 @@ python run.py --task regression --train train.csv --test test.csv --target price
 python run.py --task clustering --train customers.csv --n-clusters 4 --output results
 ```
 
-Every CSV needs a header. Supervised training includes the target; evaluation contains features only. Classification returns original labels, regression returns finite numbers, and clustering returns integer group identifiers. Supply `--id-column customer_id` to exclude a row identifier from modelling and retain its values in the prediction file. Otherwise output identifiers are zero-based row positions, preserving input order.
+Every CSV needs a header. Supervised training includes the target; evaluation
+contains the same feature columns without that target. Supply
+`--id-column customer_id` to preserve identifiers and exclude them from learning.
+Declared categorical codes and IDs such as `007` retain their leading zeros.
 
-## Inputs and outputs
-
-`--config` accepts a JSON object. Paths inside a config resolve relative to that config; explicit command-line arguments override config fields. For example:
+A JSON config is easier for repeatable runs. Its paths resolve beside the file;
+explicit command-line arguments override config fields.
 
 ```json
 {
@@ -63,52 +123,27 @@ Every CSV needs a header. Supervised training includes the target; evaluation co
   "metric": "accuracy",
   "seed": 42,
   "time_budget": 55,
-  "threads": 1,
   "output": "results"
 }
 ```
 
-Feature types may be supplied as a dictionary in the config or a path to a JSON dictionary with `--feature-types types.json`. Metadata takes precedence; undeclared types are inferred from training features. Numeric-looking strings are inferred as numeric when at least 98% of nonempty, nonmissing entries parse as numbers.
+See [the contract](docs/CONTRACT.md) for all options, supported metrics, type
+inference, error handling, and detailed output fields. Error metrics are
+negated for internal selection, so larger validation scores always win.
 
-Explicit identifiers and declared categorical columns are read as text before numeric inference, preserving distinctions such as `001` versus `1`. The output checker stays active under `python -O` and checks CSV probability values against the complete JSON result. See [the final audit](docs/FINAL_AUDIT.md) for review findings and remaining requirements.
-
-Output files:
-
-| File | Contents |
+| Output | Purpose |
 |---|---|
-| `predictions.csv` | `row_id,prediction`, in evaluation order; clustering uses training order when no evaluation file is given |
-| `probabilities.csv` | Classification probabilities, with `class_0`, `class_1`, etc. in the order of `result.json` → `classes` |
-| `profile.json` | Raw feature statistics, types, missingness, constants, duplicates, and supervised target summary |
-| `run.json` | Selected model, holdout score, candidate diagnostics, elapsed time, timeout flag, and warnings |
-| `result.json` | Complete authoritative result containing predictions, identifiers, profile, diagnostics, and classification probabilities |
+| `predictions.csv` | Row IDs and predictions in input order |
+| `probabilities.csv` | Classification probabilities, ordered by the saved class list |
+| `profile.json` | Types, missing values, basic statistics, constants, and duplicates |
+| `run.json` | Selected model, candidates, scores, timing, and warnings |
+| `result.json` | Complete authoritative result |
 
-`result.json` is the integration point for an eventual official adapter. Each file is replaced atomically; a nonzero exit code indicates failure. Treat the latest successful `result.json` as authoritative. Do not read an output directory while a run is in progress. Input and output locations must be writable where appropriate, and separate concurrent runs must use different output directories.
+Use a separate output folder for concurrent runs and trust outputs only after a
+successful exit. Files are replaced individually; a failed run can leave older
+outputs. The output checker validates consistency across JSON and CSV files.
 
-## How the program works
-
-The program first validates schemas and builds a raw-data profile. It respects declared feature types, excludes an explicitly declared identifier, and keeps target values out of the feature matrix. Training and evaluation CSVs must contain the same features, although column order may differ.
-
-Preparation removes constants and exact duplicate columns using the current training partition. Numeric nonfinite or unparseable values become missing. Numeric magnitudes above `1e30` are clipped for numerical stability. For linear models, numeric values are median-imputed and standardized, missing indicators are added, and categories are imputed and one-hot encoded with bounded cardinality. Unknown categories are accepted. Histogram models learn low-cardinality categorical splits directly, pool rare known categories, and treat unseen categories as missing. Transformations are fitted on training data and then applied to validation or evaluation rows.
-
-Supervised model selection uses one reproducible holdout, stratified for classification. Types are inferred from the complete labelled training table; learned imputation, scaling, column removal, and category vocabularies are fitted on the training partition. The program compares a constant baseline, a linear model, histogram gradient boosting, and extra trees. It also considers balanced classification and a log-target regression variant when applicable. It retains the best holdout score and attempts a full-training refit. No evaluation targets are used. Small datasets or classes with fewer than two examples bypass validation and use a fixed histogram model, with a constant fallback.
-
-Clustering median-imputes numeric features, standardizes them, and encodes categories. It compares k-means, minibatch k-means for larger tables, Gaussian mixtures when dimensionality permits, and a spectral candidate on modest datasets. Selection uses silhouette on the same fixed sample, with at most 1,500 rows; no reference labels are read. Silhouette favors separated groups and is not a guarantee of agreement with hidden labels. If identical feature vectors collapse the requested groups, training assignments are split deterministically to return the requested count; such groups have no geometric separation and generate a warning. If a clustering evaluation file is supplied, supported fitted models assign its rows without requiring every group to appear in that file.
-
-## Metrics and time control
-
-| Task | Supported `metric` values | Default |
-|---|---|---|
-| Classification | `accuracy`, `balanced_accuracy`, `f1_macro`, `f1_weighted`, `roc_auc`, `log_loss` | `accuracy` |
-| Regression | `rmse`, `mae`, `r2`, `rmsle` | `rmse` |
-| Clustering | `silhouette` | `silhouette` |
-
-Model selection maximizes its internal score. For RMSE, MAE, RMSLE, and log loss, the recorded score is the **negative loss**. RMSLE requires nonnegative training targets and clips predicted values to zero. Multiclass ROC AUC uses weighted one-vs-rest probabilities. Classification probabilities follow the original class order stored in the result.
-
-The parent process uses only Python's standard library and launches a worker with controlled CPU threads. The default total processing budget is 55 seconds, leaving margin against the overview's 60-second assessment limit. The allowed configurable range is 3–55 seconds; the worker is stopped before the configured budget to leave time for output writing. Completed prediction checkpoints survive a later timeout or model failure. If loading, imports, or initial profiling fail before a checkpoint exists, the run fails explicitly. Extremely small budgets, very large tables, very wide outputs, or slow disks can prevent timely results. There is no universal runtime or memory guarantee outside measured sizes; the official environment and dataset limits still need verification.
-
-The program defaults to one CPU thread and a fixed seed. Runtime can affect which candidates finish; operating systems and numerical libraries can also affect results. Reproduce with the same versions, seed, environment, and sufficient time. Training does not use GPUs or network services.
-
-## Test and reproduce
+## Tests and measured results
 
 ```sh
 python -m pip check
@@ -116,24 +151,65 @@ python -m unittest discover -s tests -v
 python benchmark.py --output practice --time-budget 15
 ```
 
-The benchmark generates **nine synthetic development datasets**, runs the real entry point, checks outputs, and computes local metrics using separately stored truth files. Truth files are never passed to the modelling program. The generator and benchmark have no role in production prediction. These are not the official nine practice datasets, and local metrics are not contest scores.
+**47 local tests passed** on the documented Windows/Python 3.12 environment.
+They cover preprocessing isolation, malformed inputs, probabilities, rare
+classes, missing and extreme values, nonlinear learning, real teaching datasets,
+clustering, and forced timeout recovery.
 
-The tests cover train/evaluation schema checks, preprocessing isolation, declared types, high-cardinality and unknown categories, missingness, constants, duplicates, label preservation, rare classes, all three tasks, probability validity, and actual worker termination with checkpoint recovery. See [validation results](docs/VALIDATION.md) for the measured environment, sizes, and outcomes.
+[GitHub Actions](https://github.com/jean-pierreaouad/unknown-dataset-hackathon/actions) is configured to install the pinned dependencies,
+run the suite, and check all three examples on Windows and Linux. Its run status
+is separate from the recorded local measurements.
 
-## Assumptions and limitations
+The nine-case benchmark uses **synthetic development data**, with truth kept
+outside the prediction program. Selected results:
 
-- The task, target name, required cluster count, and any declared feature types are explicit inputs. The program does not guess the task or target from a table.
-- This provisional contract uses UTF-8 comma-separated CSV plus JSON configuration. Only ordinary tabular numeric and categorical features are supported. Dates, text, images, and time-series forecasting receive no specialized interpretation.
-- CSV missingness follows pandas' default parsing, including empty fields and standard NA tokens. A literal category such as `NA` can therefore be treated as missing. The official missing-value rules must be checked.
-- Features with at most one nonmissing unique value are marked constant in the profile. Preparation can retain a value-plus-missing feature because missingness itself may contain information. Duplicate profile columns are exact raw columns, checked after hash shortlisting.
-- Only explicitly identified row IDs are removed. High uniqueness alone is insufficient to remove a potentially useful feature.
-- A single holdout saves time but can select an inferior model by chance. There is no claim of optimality or a guaranteed private-dataset score.
-- For large feature spaces, high cardinality is bounded, but memory is not externally capped. Size and memory limits from kickoff may require further constraints.
-- The dependency versions are tested on Python 3.12. The actual assessment image may require a revised compatible lockfile.
-- The official profile schema, entry point, metrics, runtime accounting, and scoring formulas are pending. Replace this provisional adapter when they arrive.
+| Example | Metric | Measured result |
+|---|---|---:|
+| Nonlinear classification | Accuracy | 96.4% |
+| Linear regression | R-squared | 0.996 |
+| Nonlinear regression | R-squared | 0.896 |
+| Mixed positive-target regression | R-squared | 0.940 |
+| Three separated clustering examples | Adjusted Rand index | 1.000 |
+| Larger classification: 20,000 training rows, 41 features | Accuracy / elapsed time | 94.3% / 21.3 seconds |
 
+These are local development measurements, not official contest scores. All nine
+benchmark outputs passed the project checker. The [validation report](docs/VALIDATION.md)
+includes the full comparison with the earlier, more complex version and records
+where simplification reduced quality.
 
+## Explore the code
 
-## Library references
+| File | Responsibility |
+|---|---|
+| `automl/data.py` | Load, validate, and profile tables |
+| `automl/features.py` | Shared training-only preparation |
+| `automl/models.py` | Supervised model choices and metrics |
+| `automl/worker.py` | Split, train, compare, and predict; run clustering |
+| `run.py` | Command-line entry point, time control, output writing |
+| `check_output.py` | Check output consistency |
+| `tests/test_project.py` | Behavior and learning tests |
 
-Implementation references: [histogram gradient boosting and categorical handling](https://scikit-learn.org/1.7/modules/generated/sklearn.ensemble.HistGradientBoostingClassifier.html), [preprocessing](https://scikit-learn.org/1.7/modules/preprocessing.html), [clustering](https://scikit-learn.org/1.7/modules/clustering.html), and [CPU resource management](https://scikit-learn.org/stable/computing/parallelism.html).
+Start with the [student guide](docs/STUDENT_GUIDE.md) for a complete walkthrough,
+Python vocabulary, and questions to practice explaining as a team.
+
+## Assumptions and limits
+
+- The task, target, and clustering group count are supplied; the program does
+  not guess them. Only numeric/categorical tables receive specialized handling.
+- One holdout can select an inferior model by chance. K-means favors compact
+  groups; identical points cannot produce meaningful geometric separation.
+- Category pooling and clipping numeric magnitudes above `1e30` can lose signal.
+  CSV parsing follows pandas' default missing-value tokens.
+- Completed checkpoints survive later timeouts, but a run fails if no initial
+  checkpoint finishes. Memory is not externally capped. Local timing does not
+  establish a universal 60-second guarantee.
+- Official input/output fields, scoring formulas, data limits, and the assessment
+  image remain unverified. There is no claim of an official score or grade.
+
+## Team
+
+**Jean-Pierre Aouad · Maher Karam · Alex Yammine · Marc Abou Mikheal**
+
+Built as a four-person team for EECE 490. The team-size exception and reported
+course deadline are recorded in `TEAM.json`. Earlier implementations remain in
+Git history; the organizer determines which commit is assessed.
