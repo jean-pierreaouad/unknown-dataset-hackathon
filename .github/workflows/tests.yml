@@ -1,0 +1,43 @@
+name: Python tests
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - '**/*.md'
+      - 'docs/**'
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Python 3.12 / ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+          cache: pip
+      - name: Install pinned dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Check dependencies
+        run: python -m pip check
+      - name: Run all tests
+        run: python -m unittest discover -s tests -v
+      - name: Run and check the three examples
+        run: |
+          python run.py --config examples/classification/config.json
+          python check_output.py examples/classification/results --expected-rows 20
+          python run.py --config examples/regression/config.json
+          python check_output.py examples/regression/results --expected-rows 20
+          python run.py --config examples/clustering/config.json
+          python check_output.py examples/clustering/results --expected-rows 100 --n-clusters 3
