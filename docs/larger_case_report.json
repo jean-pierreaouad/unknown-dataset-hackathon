@@ -4,19 +4,40 @@
     "os": "Windows",
     "architecture": "AMD64",
     "processor": "Intel64 Family 6 Model 126 Stepping 5, GenuineIntel",
-    "logical_cpus": 8
+    "logical_cpus": 8,
+    "worker_threads": 1
+  },
+  "generation": {
+    "classification": {
+      "n_samples": 24000,
+      "n_features": 40,
+      "n_informative": 18,
+      "random_state": 19,
+      "training_rows": 20000,
+      "extra_category": "one if feature_0 > 0 else two",
+      "missingness": "every 17th feature_3 in training and evaluation"
+    },
+    "clustering": {
+      "n_samples": 8000,
+      "centers": 5,
+      "n_features": 12,
+      "cluster_std": 0.7,
+      "random_state": 19
+    }
   },
   "cases": [
     {
       "task": "classification",
+      "budget_seconds": 20,
       "training_rows": 20000,
       "features": 41,
       "output_rows": 4000,
-      "elapsed_seconds": 18.562,
+      "elapsed_seconds": 18.5,
       "quality_metric": "accuracy",
-      "quality": 0.9545,
-      "selected_model": "histogram_boosting",
+      "quality": 0.93975,
+      "selected_model": "random_forest",
       "time_limit_reached": true,
+      "refit_on_all_training_rows": false,
       "candidates": [
         {
           "model": "linear",
@@ -25,46 +46,69 @@
           "score": 0.844
         },
         {
-          "model": "histogram_boosting",
-          "fit_seconds": 2.375,
+          "model": "decision_tree",
+          "fit_seconds": 0.969,
           "warnings": [],
-          "score": 0.95625
+          "score": 0.85275
+        },
+        {
+          "model": "random_forest",
+          "fit_seconds": 5.891,
+          "warnings": [],
+          "score": 0.93825
+        }
+      ]
+    },
+    {
+      "task": "classification",
+      "budget_seconds": 55,
+      "training_rows": 20000,
+      "features": 41,
+      "output_rows": 4000,
+      "elapsed_seconds": 21.312,
+      "quality_metric": "accuracy",
+      "quality": 0.94325,
+      "selected_model": "random_forest",
+      "time_limit_reached": false,
+      "refit_on_all_training_rows": true,
+      "candidates": [
+        {
+          "model": "linear",
+          "fit_seconds": 0.282,
+          "warnings": [],
+          "score": 0.844
+        },
+        {
+          "model": "decision_tree",
+          "fit_seconds": 0.985,
+          "warnings": [],
+          "score": 0.85275
+        },
+        {
+          "model": "random_forest",
+          "fit_seconds": 5.859,
+          "warnings": [],
+          "score": 0.93825
         }
       ]
     },
     {
       "task": "clustering",
+      "budget_seconds": 20,
       "training_rows": 8000,
       "features": 12,
       "output_rows": 8000,
-      "elapsed_seconds": 6.218,
+      "elapsed_seconds": 5.891,
       "quality_metric": "adjusted_rand_index",
       "quality": 1.0,
       "selected_model": "minibatch_kmeans",
       "time_limit_reached": false,
+      "refit_on_all_training_rows": true,
       "candidates": [
         {
           "model": "minibatch_kmeans",
           "score": 0.8316920681109702,
-          "fit_seconds": 0.062,
-          "groups_repaired": false
-        },
-        {
-          "model": "kmeans",
-          "score": 0.8316920681109702,
-          "fit_seconds": 0.078,
-          "groups_repaired": false
-        },
-        {
-          "model": "gaussian_mixture_diagonal",
-          "score": 0.8316920681109702,
-          "fit_seconds": 0.14,
-          "groups_repaired": false
-        },
-        {
-          "model": "gaussian_mixture_full",
-          "score": 0.8316920681109702,
-          "fit_seconds": 0.188,
+          "fit_seconds": 0.328,
           "groups_repaired": false
         }
       ]

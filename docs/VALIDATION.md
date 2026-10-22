@@ -1,58 +1,92 @@
-# Local validation results
+# Simplified-version validation
 
-Tests were run on 21 October 2026 with an isolated Python 3.12.14 environment on Windows AMD64, an Intel Family 6 Model 126 processor, and 8 logical CPUs. The prediction worker was limited to one CPU thread. The pinned dependency set passed its dependency consistency check. Linux and the organizer's assessment environment have not yet been tested.
-
-The release ZIP was extracted to a separate directory. All three shipped examples ran successfully from that copy and passed the output checker. Every installed direct and transitive dependency matched its exact pinned version.
+Tested on 22 October 2026 using Python 3.12.14 on Windows AMD64, Intel
+Family 6 Model 126, with 8 logical CPUs. The prediction worker used one thread.
+All ten installed versions matched `requirements.txt`; all ten active package
+dependency constraints passed a distribution-metadata check. The existing
+isolated environment has no pip module, so this review does not claim a new
+`pip check` run there. Fresh installation, Linux, and the organizer's image
+remain unverified. See `dependency_report.json`.
 
 ## Automated checks
 
-All **42 tests passed** in the final audit full-suite run, which took 50.585 seconds for the entire suite. They cover numerical and categorical preprocessing, exact profiling, declared types, high cardinality, unknown categories, preprocessing isolation, malformed schemas, missing targets, duplicate identifiers, RMSLE constraints, clustering count constraints, mixed-data classification, regression quality, cluster recovery, single-class targets, collapsed groups, rare classes, multiclass probability alignment, one-row regression, optional clustering evaluation, and forced worker termination with checkpoint recovery.
+**47 tests passed**, with no failures, errors, or skipped tests.
+The suite took 95.906 seconds in total, not per dataset.
 
-The final audit added eight tests covering preservation of leading zeros in declared categories and explicit row IDs, finite median statistics for extreme numeric features, validation under Python optimization, tampered probability CSV files, overflowing JSON exponents, invalid regression predictions, and valid checker fixtures. The stricter checker also passed all 11 previously generated benchmark and larger-case outputs. Model-selection settings were unchanged by these audit fixes; the recorded benchmark timings below are the original measurements.
+Behavior checks cover schemas, metadata, preprocessing isolation, missing and
+extreme values, duplicates, categories, leading zeros, probabilities, rare
+classes, tiny tables, all tasks, cluster counts, and forced timeout recovery.
+Two implementation-specific checks were adapted: the removed custom encoder
+test became a bounded one-hot/unseen-category test; the histogram test now
+checks that all three simpler models fit high-cardinality data without errors.
+They were replaced rather than deleted to obtain a passing result.
 
-One additional imbalance case checks that a class with just two examples remains present in both fitting and validation partitions, allowing ROC AUC to be evaluated. A single proportional stratified split can otherwise round the entire minority into one side.
+Five added integration tests check held-out nonlinear classification (accuracy
+above 0.90), nonlinear regression (R-squared above 0.80), built-in breast cancer
+teaching data (accuracy above 0.90), built-in diabetes teaching data (R-squared
+above 0.30), and 5,200-row mini-batch clustering (adjusted Rand index above 0.95).
+The production program does not receive these test datasets or their answers.
 
-Run the suite from the project directory:
+Run `python -m unittest discover -s tests -v` to repeat the tests.
 
-```sh
-python -m unittest discover -s tests -v
-```
+## Same-data comparison
 
-## Nine synthetic development datasets
+Both versions received byte-identical generated CSV inputs and separate truth
+files, using the unchanged generator, seed 42, a 15-second budget, and the same
+pinned environment. These are synthetic development cases, not official data.
 
-These are generated data, not the official practice or private assessment datasets. The benchmark uses separately held-out truth for supervised metrics and reference labels only for evaluating clustering after predictions. The production entry point receives no truth files.
+| Case | Metric | Previous | Simplified | Selected model | Seconds |
+|---|---|---:|---:|---|---:|
+| classification_imbalanced | balanced_accuracy | 0.8748 | 0.8475 | random_forest | 7.109 |
+| classification_nonlinear | accuracy | 0.9778 | 0.9644 | decision_tree | 5.828 |
+| classification_mixed | accuracy | 0.8840 | 0.8840 | linear | 6.016 |
+| regression_linear | r2 | 0.9956 | 0.9956 | linear | 6.312 |
+| regression_nonlinear | r2 | 0.9734 | 0.8957 | random_forest | 6.453 |
+| regression_mixed_positive | r2 | 0.9302 | 0.9397 | random_forest | 6.235 |
+| clustering_scaled | adjusted_rand_index | 1.0000 | 1.0000 | kmeans | 5.766 |
+| clustering_anisotropic | adjusted_rand_index | 1.0000 | 1.0000 | kmeans | 5.516 |
+| clustering_mixed | adjusted_rand_index | 1.0000 | 1.0000 | kmeans | 5.250 |
 
-Every case used a 15-second processing budget. Timings below are independent end-to-end subprocess measurements, including interpreter startup and output writing. Several cases ran while other local verification work was active, so these timings are descriptive rather than a controlled performance comparison.
+All nine simpler runs passed the output checker, finished below 60 seconds,
+and reported no timeout or candidate error. Times include startup and writing.
+Runs occurred at different moments on a shared computer, so these are not a
+controlled speed comparison. High clustering scores reflect separated groups.
+Full metrics and diagnostics appear in `comparison_report.json`.
 
-| Case | Rows supplied for learning | Features | End-to-end seconds | Held-out or external quality |
-|---|---:|---:|---:|---|
-| Classification with imbalance | 675 | 12 | 8.515 | Accuracy 0.9422; balanced accuracy 0.8748 |
-| Nonlinear classification | 675 | 3 | 6.406 | Accuracy 0.9778 |
-| Classification with mixed types and missingness | 750 | 6 | 7.391 | Accuracy 0.8840 |
-| Linear regression with unequal scales | 750 | 10 | 7.093 | R² 0.9956; RMSE 10.8059 |
-| Nonlinear regression | 900 | 6 | 7.078 | R² 0.9734; RMSE 1.6699 |
-| Positive regression with mixed types | 825 | 4 | 7.218 | R² 0.9302; RMSLE 0.1721 |
-| Clustering with unequal scales | 800 | 4 | 6.110 | Adjusted Rand index 1.0000 |
-| Anisotropic clustering | 800 | 2 | 6.140 | Adjusted Rand index 1.0000 |
-| Clustering with mixed types and missingness | 900 | 6 | 6.234 | Adjusted Rand index 1.0000 |
+Some classification results and nonlinear regression quality decreased with
+simplification. Linear regression and these clustering cases retained their
+scores; the mixed positive regression case improved. No equivalent hidden-data
+accuracy, official score, or grade is claimed. Recreate the current benchmark
+with `python benchmark.py --output practice --time-budget 15`.
 
-All nine passed the provisional output checker, finished below 60 seconds, and completed without worker termination. No model-candidate errors were recorded. High clustering scores reflect deliberately separable synthetic groups; they do not predict performance on arbitrary hidden datasets.
+## Larger timed cases
 
-## Larger cases and timeout behavior
+Classification uses 20,000 training and 4,000 evaluation rows, 40 numeric
+features plus a category, and missing values. Clustering uses 8,000 rows and
+12 features. Exact generator parameters are in `larger_case_report.json`.
+The 20-second budget exercises the earlier audit's case; 55 is the default.
 
-Two further generated cases used a 20-second processing budget:
+| Task | Training rows | Features | Budget | Seconds | Accuracy or ARI | Selected model | Timed out | Full refit |
+|---|---:|---:|---:|---:|---:|---|---|---|
+| classification | 20,000 | 41 | 20 | 18.500 | 0.9397 | random_forest | True | False |
+| classification | 20,000 | 41 | 55 | 21.312 | 0.9433 | random_forest | False | True |
+| clustering | 8,000 | 12 | 20 | 5.891 | 1.0000 | minibatch_kmeans | False | True |
 
-| Task | Learning rows | Features | Output rows | End-to-end seconds | Quality | Behavior |
-|---|---:|---:|---:|---:|---|---|
-| Classification | 20,000 | 41 | 4,000 | 18.562 | Held-out accuracy 0.9545 | Watchdog stopped a later candidate and returned the completed histogram model checkpoint |
-| Clustering | 8,000 | 12 | 8,000 | 6.218 | Adjusted Rand index 1.0000 | Completed model comparisons normally |
+When time expires, the latest complete checkpoint can precede full-data
+refitting; diagnostics report this. Constant/tree or deterministic-group
+fallbacks are emergency results, not evidence of useful learned performance.
+The forced-timeout test checks checkpoint recovery independently.
 
-The classification checkpoint was fitted on its training partition; the interrupted run did not complete a full-data refit. This is an intentional recovery path, and `run.json` reports the timeout and refit status. The separate watchdog test starts a worker that writes a valid checkpoint and then sleeps; the parent terminates it and validates the retained outputs.
+## Limits
 
-These measurements establish working behavior at the listed sizes on this machine. The official dataset limits, hardware, runtime accounting, profile schema, metrics, and checker remain unknown. No official score or general 60-second guarantee is claimed.
+K-means assumes compact groups; curved or elongated groups can be worse than
+with the removed methods. Pooling rare categories can lose signal. A single
+holdout has selection variance. Magnitudes over `1e30` are clipped. Memory is
+not externally capped. A timeout before the first checkpoint is an explicit
+failure. Local timing does not prove a universal 60-second guarantee.
 
-The machine-readable benchmark report is included beside this file. Recreate the generated data and measurements with:
-
-```sh
-python benchmark.py --output practice --time-budget 15
-```
+The official contract, profile schema, checker, scoring formulas, dataset
+limits, and CPU image remain unavailable. This is a tested implementation of
+the supplied overview and disclosed assumptions. Version 0.2.0 is a later educational revision; earlier commits remain in
+repository history. Publication does not establish a course submission or
+which commit the organizer assesses.

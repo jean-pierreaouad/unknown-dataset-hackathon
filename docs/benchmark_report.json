@@ -5,42 +5,42 @@
     {
       "name": "classification_imbalanced",
       "task": "classification",
-      "elapsed_seconds": 8.515,
-      "selected_model": "extra_trees",
+      "elapsed_seconds": 7.109,
+      "selected_model": "random_forest",
       "metrics": {
-        "accuracy": 0.9422222222222222,
-        "balanced_accuracy": 0.8748481904299248
+        "accuracy": 0.9244444444444444,
+        "balanced_accuracy": 0.8475224678163711
       },
       "time_limit_reached": false,
       "candidates": [
         {
           "model": "linear",
-          "fit_seconds": 0.047,
+          "fit_seconds": 0.078,
           "warnings": [],
           "score": 0.881008010680908
         },
         {
-          "model": "histogram_boosting",
-          "fit_seconds": 0.235,
+          "model": "decision_tree",
+          "fit_seconds": 0.047,
           "warnings": [],
-          "score": 0.9634512683578105
+          "score": 0.8988651535380507
         },
         {
-          "model": "extra_trees",
+          "model": "random_forest",
           "fit_seconds": 0.172,
           "warnings": [],
-          "score": 0.9642857142857143
+          "score": 0.9549399198931909
         }
       ]
     },
     {
       "name": "classification_nonlinear",
       "task": "classification",
-      "elapsed_seconds": 6.406,
-      "selected_model": "extra_trees",
+      "elapsed_seconds": 5.828,
+      "selected_model": "decision_tree",
       "metrics": {
-        "accuracy": 0.9777777777777777,
-        "balanced_accuracy": 0.9778365992414665
+        "accuracy": 0.9644444444444444,
+        "balanced_accuracy": 0.9644437420986094
       },
       "time_limit_reached": false,
       "candidates": [
@@ -51,23 +51,23 @@
           "score": 0.9111111111111111
         },
         {
-          "model": "histogram_boosting",
-          "fit_seconds": 0.11,
+          "model": "decision_tree",
+          "fit_seconds": 0.015,
           "warnings": [],
-          "score": 0.9481481481481482
+          "score": 0.9555555555555556
         },
         {
-          "model": "extra_trees",
-          "fit_seconds": 0.141,
+          "model": "random_forest",
+          "fit_seconds": 0.125,
           "warnings": [],
-          "score": 0.9777777777777777
+          "score": 0.9333333333333333
         }
       ]
     },
     {
       "name": "classification_mixed",
       "task": "classification",
-      "elapsed_seconds": 7.391,
+      "elapsed_seconds": 6.016,
       "selected_model": "linear",
       "metrics": {
         "accuracy": 0.884,
@@ -77,28 +77,28 @@
       "candidates": [
         {
           "model": "linear",
-          "fit_seconds": 0.063,
+          "fit_seconds": 0.047,
           "warnings": [],
           "score": 0.84
         },
         {
-          "model": "histogram_boosting",
-          "fit_seconds": 0.235,
-          "warnings": [],
-          "score": 0.8333333333333334
-        },
-        {
-          "model": "extra_trees",
-          "fit_seconds": 0.312,
+          "model": "decision_tree",
+          "fit_seconds": 0.031,
           "warnings": [],
           "score": 0.8066666666666666
+        },
+        {
+          "model": "random_forest",
+          "fit_seconds": 0.125,
+          "warnings": [],
+          "score": 0.8266666666666667
         }
       ]
     },
     {
       "name": "regression_linear",
       "task": "regression",
-      "elapsed_seconds": 7.093,
+      "elapsed_seconds": 6.312,
       "selected_model": "linear",
       "metrics": {
         "rmse": 10.805861525625158,
@@ -108,32 +108,32 @@
       "candidates": [
         {
           "model": "linear",
-          "fit_seconds": 0.031,
+          "fit_seconds": 0.047,
           "warnings": [],
           "score": -9.331162831750888
         },
         {
-          "model": "histogram_boosting",
-          "fit_seconds": 0.391,
+          "model": "decision_tree",
+          "fit_seconds": 0.031,
           "warnings": [],
-          "score": -26.217541651560175
+          "score": -73.78173761492175
         },
         {
-          "model": "extra_trees",
-          "fit_seconds": 0.391,
+          "model": "random_forest",
+          "fit_seconds": 0.343,
           "warnings": [],
-          "score": -35.02873492904066
+          "score": -44.049252033765114
         }
       ]
     },
     {
       "name": "regression_nonlinear",
       "task": "regression",
-      "elapsed_seconds": 7.078,
-      "selected_model": "histogram_boosting",
+      "elapsed_seconds": 6.453,
+      "selected_model": "random_forest",
       "metrics": {
-        "rmse": 1.6699136330275461,
-        "r2": 0.9733971436170431
+        "rmse": 3.3060207872004264,
+        "r2": 0.8957319121323074
       },
       "time_limit_reached": false,
       "candidates": [
@@ -144,28 +144,28 @@
           "score": -9.653992208822695
         },
         {
-          "model": "histogram_boosting",
-          "fit_seconds": 0.265,
+          "model": "decision_tree",
+          "fit_seconds": 0.047,
           "warnings": [],
-          "score": -2.1071655989971214
+          "score": -3.9291057795408633
         },
         {
-          "model": "extra_trees",
-          "fit_seconds": 0.281,
+          "model": "random_forest",
+          "fit_seconds": 0.313,
           "warnings": [],
-          "score": -2.994315432497614
+          "score": -3.3003294714924443
         }
       ]
     },
     {
       "name": "regression_mixed_positive",
       "task": "regression",
-      "elapsed_seconds": 7.218,
-      "selected_model": "histogram_boosting",
+      "elapsed_seconds": 6.235,
+      "selected_model": "random_forest",
       "metrics": {
-        "rmse": 46.47767963904822,
-        "r2": 0.9302206034115049,
-        "rmsle": 0.17210927741003051
+        "rmse": 43.195549909988806,
+        "r2": 0.9397278966062127,
+        "rmsle": 0.16079893795038744
       },
       "time_limit_reached": false,
       "candidates": [
@@ -173,32 +173,26 @@
           "model": "linear",
           "fit_seconds": 0.032,
           "warnings": [],
-          "score": -1.1207464440858268
+          "score": -1.1207464440858272
         },
         {
-          "model": "histogram_boosting",
-          "fit_seconds": 0.219,
+          "model": "decision_tree",
+          "fit_seconds": 0.031,
           "warnings": [],
-          "score": -0.16130710948768323
+          "score": -0.18529790647772645
         },
         {
-          "model": "extra_trees",
-          "fit_seconds": 0.438,
+          "model": "random_forest",
+          "fit_seconds": 0.156,
           "warnings": [],
-          "score": -0.1901586433077426
-        },
-        {
-          "model": "log_target_histogram",
-          "fit_seconds": 0.234,
-          "warnings": [],
-          "score": -0.16314974450832334
+          "score": -0.15800060168666086
         }
       ]
     },
     {
       "name": "clustering_scaled",
       "task": "clustering",
-      "elapsed_seconds": 6.11,
+      "elapsed_seconds": 5.766,
       "selected_model": "kmeans",
       "metrics": {
         "adjusted_rand_index": 1.0
@@ -208,25 +202,7 @@
         {
           "model": "kmeans",
           "score": 0.9117720374335764,
-          "fit_seconds": 0.047,
-          "groups_repaired": false
-        },
-        {
-          "model": "gaussian_mixture_diagonal",
-          "score": 0.9117720374335764,
-          "fit_seconds": 0.016,
-          "groups_repaired": false
-        },
-        {
-          "model": "gaussian_mixture_full",
-          "score": 0.9117720374335764,
-          "fit_seconds": 0.031,
-          "groups_repaired": false
-        },
-        {
-          "model": "spectral_neighbors",
-          "score": 0.9117720374335764,
-          "fit_seconds": 0.063,
+          "fit_seconds": 0.079,
           "groups_repaired": false
         }
       ]
@@ -234,7 +210,7 @@
     {
       "name": "clustering_anisotropic",
       "task": "clustering",
-      "elapsed_seconds": 6.14,
+      "elapsed_seconds": 5.516,
       "selected_model": "kmeans",
       "metrics": {
         "adjusted_rand_index": 1.0
@@ -244,25 +220,7 @@
         {
           "model": "kmeans",
           "score": 0.8400977738741767,
-          "fit_seconds": 0.031,
-          "groups_repaired": false
-        },
-        {
-          "model": "gaussian_mixture_diagonal",
-          "score": 0.8400977738741767,
-          "fit_seconds": 0.015,
-          "groups_repaired": false
-        },
-        {
-          "model": "gaussian_mixture_full",
-          "score": 0.8400977738741767,
-          "fit_seconds": 0.016,
-          "groups_repaired": false
-        },
-        {
-          "model": "spectral_neighbors",
-          "score": 0.3541591049216992,
-          "fit_seconds": 0.078,
+          "fit_seconds": 0.047,
           "groups_repaired": false
         }
       ]
@@ -270,7 +228,7 @@
     {
       "name": "clustering_mixed",
       "task": "clustering",
-      "elapsed_seconds": 6.234,
+      "elapsed_seconds": 5.25,
       "selected_model": "kmeans",
       "metrics": {
         "adjusted_rand_index": 1.0
@@ -279,26 +237,8 @@
       "candidates": [
         {
           "model": "kmeans",
-          "score": 0.7625250161570074,
-          "fit_seconds": 0.047,
-          "groups_repaired": false
-        },
-        {
-          "model": "gaussian_mixture_diagonal",
-          "score": 0.7625250161570074,
-          "fit_seconds": 0.047,
-          "groups_repaired": false
-        },
-        {
-          "model": "gaussian_mixture_full",
-          "score": 0.7625250161570074,
-          "fit_seconds": 0.047,
-          "groups_repaired": false
-        },
-        {
-          "model": "spectral_neighbors",
-          "score": 0.4799521769885991,
-          "fit_seconds": 0.14,
+          "score": 0.7625250161570075,
+          "fit_seconds": 0.031,
           "groups_repaired": false
         }
       ]

@@ -1,0 +1,68 @@
+{
+  "exact_pins_verified": {
+    "numpy": "2.3.5",
+    "pandas": "2.3.3",
+    "scipy": "1.16.3",
+    "scikit-learn": "1.7.2",
+    "joblib": "1.5.2",
+    "threadpoolctl": "3.6.0",
+    "python-dateutil": "2.9.0.post0",
+    "pytz": "2026.5",
+    "tzdata": "2026.5",
+    "six": "1.17.0"
+  },
+  "metadata_dependency_consistency_passed": true,
+  "checked_requirements": [
+    {
+      "package": "pandas",
+      "requires": "numpy>=1.26.0; python_version >= \"3.12\"",
+      "installed": "2.3.5"
+    },
+    {
+      "package": "pandas",
+      "requires": "python-dateutil>=2.8.2",
+      "installed": "2.9.0.post0"
+    },
+    {
+      "package": "pandas",
+      "requires": "pytz>=2020.1",
+      "installed": "2026.5"
+    },
+    {
+      "package": "pandas",
+      "requires": "tzdata>=2022.7",
+      "installed": "2026.5"
+    },
+    {
+      "package": "python-dateutil",
+      "requires": "six>=1.5",
+      "installed": "1.17.0"
+    },
+    {
+      "package": "scikit-learn",
+      "requires": "numpy>=1.22.0",
+      "installed": "2.3.5"
+    },
+    {
+      "package": "scikit-learn",
+      "requires": "scipy>=1.8.0",
+      "installed": "1.16.3"
+    },
+    {
+      "package": "scikit-learn",
+      "requires": "joblib>=1.2.0",
+      "installed": "1.5.2"
+    },
+    {
+      "package": "scikit-learn",
+      "requires": "threadpoolctl>=3.1.0",
+      "installed": "3.6.0"
+    },
+    {
+      "package": "scipy",
+      "requires": "numpy<2.6,>=1.25.2",
+      "installed": "2.3.5"
+    }
+  ],
+  "method": "Verified installed distribution metadata and version constraints using packaging; no dependency installation performed."
+}
