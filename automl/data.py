@@ -9,6 +9,7 @@ import pandas as pd
 
 
 def read_csv(path, text_columns=()):
+    """Read a nonempty table, preserving declared categories and IDs as text."""
     with Path(path).open(encoding="utf-8-sig", newline="") as stream:
         headers = next(csv.reader(stream), None)
     if not headers or any(not name.strip() for name in headers):
@@ -25,6 +26,7 @@ def read_csv(path, text_columns=()):
 
 
 def infer_types(frame, declared):
+    """Use the supplied feature types; infer only the unspecified columns."""
     unknown = set(declared) - set(frame.columns)
     if unknown:
         raise ValueError(f"feature_types contains unknown features: {sorted(unknown)}")
@@ -44,6 +46,7 @@ def infer_types(frame, declared):
 
 
 def numeric(values):
+    """Turn invalid numbers and infinities into missing values for imputation."""
     array = pd.to_numeric(values, errors="coerce").astype(float)
     return array.replace([np.inf, -np.inf], np.nan)
 
@@ -64,6 +67,7 @@ def stable_median(values):
 
 
 def normalize(frame, types):
+    """Give numeric and category columns consistent pandas representations."""
     output = pd.DataFrame(index=frame.index)
     for name, kind in types.items():
         values = frame[name]
@@ -76,6 +80,7 @@ def normalize(frame, types):
 
 
 def duplicate_columns(frame):
+    """Map each duplicate column to its first equal column in this table."""
     seen = {}
     duplicates = {}
     for name in frame:
@@ -92,23 +97,37 @@ def duplicate_columns(frame):
 
 
 def profile_frame(frame, types):
+    """Describe the original feature table before fitting any preparation."""
     columns = {}
     for name in frame:
         values = frame[name]
         missing = int(values.isna().sum())
         unique = int(values.nunique(dropna=True))
-        item = {"type": types[name], "missing_count": missing,
-                "missing_fraction": missing / len(values), "unique_nonmissing": unique,
-                "constant": unique <= 1, "all_missing": missing == len(values)}
+        item = {
+            "type": types[name],
+            "missing_count": missing,
+            "missing_fraction": missing / len(values),
+            "unique_nonmissing": unique,
+            "constant": unique <= 1,
+            "all_missing": missing == len(values),
+        }
         if types[name] == "numeric":
             converted = pd.to_numeric(values, errors="coerce").astype(float)
             finite = converted[np.isfinite(converted)]
             item["infinite_count"] = int(np.isinf(converted).sum())
             item["invalid_numeric_count"] = int((values.notna() & converted.isna()).sum())
             item["numeric_clipped_count"] = int((finite.abs() > 1e30).sum())
-            item["statistics"] = ({"min": float(finite.min()), "max": float(finite.max()),
-                                   "median": stable_median(finite),
-                                   "mean": float((finite / max(1.0, float(finite.abs().max()))).mean() * max(1.0, float(finite.abs().max())))} if len(finite) else None)
+            item["statistics"] = None
+            if len(finite):
+                # Calculate the mean on a bounded scale, then restore units.
+                # This avoids summing huge values into infinity.
+                scale = max(1.0, float(finite.abs().max()))
+                item["statistics"] = {
+                    "min": float(finite.min()),
+                    "max": float(finite.max()),
+                    "median": stable_median(finite),
+                    "mean": float((finite / scale).mean() * scale),
+                }
         else:
             counts = values.dropna().astype(str).value_counts().head(10)
             item["top_values"] = [{"value": str(value), "count": int(count)} for value, count in counts.items()]
@@ -121,6 +140,7 @@ def profile_frame(frame, types):
 
 
 def load_data(config):
+    """Return features, evaluation rows, targets, types, profile, and row IDs."""
     text_columns = [name for name, kind in config["feature_types"].items() if kind == "categorical"]
     if config.get("id_column"):
         text_columns.append(config["id_column"])
